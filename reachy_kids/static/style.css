@@ -1,0 +1,233 @@
+:root {
+    --bg: #fff8ef;
+    --card: #ffffff;
+    --ink: #2b2540;
+    --muted: #6f6883;
+    --accent: #ff7a59;
+    --accent-ink: #ffffff;
+    --line: #efe6da;
+    --listening: #3fb68b;
+    --hearing: #2f8cff;
+    --thinking: #b38bff;
+    --speaking: #ff7a59;
+    --idle: #c9c2d6;
+    font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 24px 16px 48px;
+}
+
+header,
+main {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    width: 64px;
+    height: 64px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.9rem;
+}
+
+h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+}
+
+.subtitle {
+    margin: 2px 0 0;
+    color: var(--muted);
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(43, 37, 64, 0.04);
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-card button {
+    margin-left: auto;
+}
+
+.orb {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--idle);
+    transition: background 0.3s;
+}
+
+.orb[data-state="listening"] { background: var(--listening); animation: breathe 2.4s ease-in-out infinite; }
+.orb[data-state="hearing"] { background: var(--hearing); animation: breathe 0.8s ease-in-out infinite; }
+.orb[data-state="thinking"] { background: var(--thinking); animation: breathe 1.2s ease-in-out infinite; }
+.orb[data-state="speaking"] { background: var(--speaking); animation: breathe 0.6s ease-in-out infinite; }
+.orb[data-state="needs_setup"] { background: #ffc35a; }
+
+@keyframes breathe {
+    50% { transform: scale(0.86); opacity: 0.8; }
+}
+
+.status-label {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.status-detail {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.transcript {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.transcript li {
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: #f6f2fb;
+    max-width: 85%;
+}
+
+.transcript li.robot {
+    background: #fff0ea;
+    align-self: flex-start;
+}
+
+.transcript li.child,
+.transcript li.user {
+    align-self: flex-end;
+}
+
+.transcript li.empty {
+    background: none;
+    color: var(--muted);
+}
+
+.who {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+form label small {
+    font-weight: 400;
+    color: var(--muted);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0 16px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fffdfa;
+    color: var(--ink);
+}
+
+label.toggle {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: #fff5ec;
+}
+
+label.toggle input {
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+}
+
+label.toggle span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+button {
+    font: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+}
+
+button.ghost {
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--line);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#save-status {
+    color: var(--muted);
+}
