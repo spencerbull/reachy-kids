@@ -141,3 +141,23 @@ async def test_server_errors_are_reported_without_closing():
         assert not task.done()
         stop.set()
         await asyncio.wait_for(task, 5)
+
+
+async def test_child_interrupting_during_tool_follow_up_does_not_stall():
+    async with FakeRealtimeServer() as server:
+        _, audio, _, _, stop, task = await start(server, "openai")
+        await server.wait_for("response.create")
+        await server.send_audio(8.0, 24000)
+        while not audio.played:
+            await asyncio.sleep(0.02)
+
+        await server.send({"type": "response.function_call_arguments.done", "call_id": "c1", "name": "dance"})
+        await server.send({"type": "response.done"})
+        await server.wait_for("conversation.item.create")
+        await asyncio.sleep(0.2)
+        assert len(server.of_type("response.create")) == 1  # still waiting for Reachy to finish talking
+
+        await server.send({"type": "input_audio_buffer.speech_started"})
+        await server.wait_for("response.create", count=2, timeout=1.0)
+        stop.set()
+        await asyncio.wait_for(task, 5)

@@ -71,7 +71,8 @@ def _open_browser_when_ready(url: str) -> None:
 
 def run_app() -> None:
     """Run the app against the daemon that is already running."""
-    # Imported late so REACHY_KIDS_* environment set by `launch` is seen by the app class.
+    os.environ.setdefault("REACHY_KIDS_HOST", "127.0.0.1")
+    # Imported late so the REACHY_KIDS_* environment set here and by `launch` is seen by the app class.
     from reachy_kids.main import main
 
     main()
@@ -140,7 +141,9 @@ def install_launcher(_: argparse.Namespace) -> None:
         path.write_text(desktop_entry(name, comment, exec_args, executable, terminal_exec))
         path.chmod(0o755)
         print(f"Installed {path}")
-    subprocess.run(["update-desktop-database", str(applications)], check=False, capture_output=True)
+    update_database = shutil.which("update-desktop-database")
+    if update_database:
+        subprocess.run([update_database, str(applications)], check=False, capture_output=True)
     print("Find Reachy Kids in your app launcher (SUPER + SPACE on Omarchy).")
 
 

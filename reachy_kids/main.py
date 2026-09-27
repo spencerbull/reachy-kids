@@ -18,6 +18,9 @@ from reachy_kids.listening import FloatAudio
 logger = logging.getLogger(__name__)
 
 UI_PORT = int(os.getenv("REACHY_KIDS_PORT", "8042"))
+# The settings page can change API keys and has no login. The CLI keeps it on this computer; when the robot's
+# dashboard starts the app (e.g. on a Wireless robot) it stays reachable from the local network like other apps.
+UI_HOST = os.getenv("REACHY_KIDS_HOST", "0.0.0.0")
 
 
 class RobotAudio:
@@ -54,7 +57,7 @@ class RobotAudio:
 class ReachyKids(ReachyMiniApp):  # type: ignore[misc]
     """Voice conversation app with a kids mode, for OpenAI Realtime or xAI Grok Voice."""
 
-    custom_app_url: str | None = f"http://0.0.0.0:{UI_PORT}"
+    custom_app_url: str | None = f"http://{UI_HOST}:{UI_PORT}"
     # "local" is needed in the MuJoCo simulator, which has no media server; unset means SDK auto-detect.
     request_media_backend: str | None = os.getenv("REACHY_KIDS_MEDIA_BACKEND") or None
 

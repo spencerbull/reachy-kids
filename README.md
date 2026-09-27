@@ -59,7 +59,9 @@ API key, and save. Reachy greets you and starts listening. The page shows what R
 switch providers, voices, and modes at any time.
 
 Reachy Kids is also a regular Reachy Mini app: install it into the daemon's environment and start it from the Reachy
-Mini dashboard.
+Mini dashboard. Started that way (for example on a Wireless robot), the settings page is reachable from your local
+network so you can open it from a phone. It has no login and can change the API keys, so only do this on a network you
+trust. Saved keys are never sent back to the browser.
 
 ### Settings
 
@@ -71,6 +73,7 @@ variables override the file:
 | `OPENAI_API_KEY` / `XAI_API_KEY` | API keys |
 | `REACHY_KIDS_PROVIDER` | `openai` or `xai` |
 | `REACHY_KIDS_PORT` | Settings page port (default `8042`) |
+| `REACHY_KIDS_HOST` | Settings page address. `reachy-kids` binds `127.0.0.1`; started from the robot dashboard it binds `0.0.0.0` |
 | `REACHY_KIDS_MEDIA_BACKEND` | Force a Reachy Mini media backend (`launch --sim` sets `local`) |
 | `REACHY_KIDS_CONFIG` | Use a different settings file |
 

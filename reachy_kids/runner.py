@@ -83,12 +83,10 @@ class ConversationRunner:
         """Run sessions until ``stop`` is set."""
         self._loop = asyncio.get_running_loop()
         self._restart = restart_event = asyncio.Event()
-        session_stop = asyncio.Event()
 
         async def watch_stop() -> None:
             while not stop.is_set():
                 await asyncio.sleep(0.2)
-            session_stop.set()
             restart_event.set()
 
         watcher = asyncio.create_task(watch_stop())
@@ -105,13 +103,13 @@ class ConversationRunner:
 
                 started = time.monotonic()
                 conversation = RealtimeConversation(settings, self.audio, self.tools, self._on_event, self.connector)
+                session_stop = asyncio.Event()
                 session = asyncio.create_task(conversation.run(session_stop))
                 restart = asyncio.create_task(self._restart.wait())
                 await asyncio.wait({session, restart}, return_when=asyncio.FIRST_COMPLETED)
                 if not session.done():
                     session_stop.set()
                     await asyncio.gather(session, return_exceptions=True)
-                    session_stop.clear()
                     self.audio.clear()
                 restart.cancel()
 
