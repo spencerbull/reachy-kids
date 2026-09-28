@@ -189,6 +189,10 @@ class RealtimeConversation:
             self._pending_calls[item["call_id"]] = (item.get("name", ""), item.get("arguments", "{}"))
         elif kind == "response.created":
             self.on_event("status", {"state": "speaking"})
+        elif kind == "response.done" and event.get("response", {}).get("status", "completed") != "completed":
+            # Interrupted by the child (or failed): don't act on it or ask for a follow-up.
+            self._pending_calls.clear()
+            self.on_event("status", {"state": "listening"})
         elif kind == "response.done":
             # Runs as a task: waiting for playback must not block barge-in events.
             task = asyncio.create_task(self._finish_response())

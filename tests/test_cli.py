@@ -1,3 +1,7 @@
+import argparse
+
+import pytest
+
 from reachy_kids import cli
 
 
@@ -30,3 +34,27 @@ def test_install_and_uninstall_launcher(tmp_path, monkeypatch):
     cli.main(["uninstall-launcher"])
     assert not (apps / "reachy-kids.desktop").exists()
     assert not icon.exists()
+
+
+@pytest.mark.parametrize(("running_sim", "want_sim"), [(False, True), (True, False)])
+def test_launch_refuses_a_daemon_in_the_other_mode(monkeypatch, running_sim, want_sim):
+    monkeypatch.setattr(cli, "_daemon_status", lambda: {"simulation_enabled": running_sim})
+    monkeypatch.setattr(cli, "run_app", lambda: pytest.fail("must not run against the wrong daemon"))
+    args = argparse.Namespace(sim=want_sim, headless=True, no_browser=True)
+
+    with pytest.raises(SystemExit, match="already running"):
+        cli.launch(args)
+
+
+def test_launch_reuses_a_matching_daemon(monkeypatch):
+    ran = []
+    monkeypatch.setattr(cli, "_daemon_status", lambda: {"simulation_enabled": True})
+    monkeypatch.setattr(cli, "_start_daemon", lambda **_: pytest.fail("must reuse the running daemon"))
+    monkeypatch.setattr(cli, "run_app", lambda: ran.append(True))
+    monkeypatch.delenv("REACHY_KIDS_MEDIA_BACKEND", raising=False)
+
+    cli.launch(argparse.Namespace(sim=True, headless=True, no_browser=True))
+
+    assert ran == [True]
+    assert cli.os.environ["REACHY_KIDS_MEDIA_BACKEND"] == "local"
+    monkeypatch.delenv("REACHY_KIDS_MEDIA_BACKEND")

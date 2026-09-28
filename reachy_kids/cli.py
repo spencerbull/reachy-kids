@@ -2,6 +2,7 @@
 
 import os
 import sys
+import json
 import time
 import shutil
 import logging
@@ -11,6 +12,7 @@ import subprocess
 import webbrowser
 import urllib.error
 import urllib.request
+from typing import Any
 from pathlib import Path
 from importlib.resources import files
 
@@ -23,6 +25,15 @@ LAUNCHERS = {
     "reachy-kids.desktop": ("Reachy Kids", "Talk with your Reachy Mini robot", "launch"),
     "reachy-kids-sim.desktop": ("Reachy Kids Simulator", "Talk with a simulated Reachy Mini", "launch --sim"),
 }
+
+
+def _daemon_status() -> dict[str, Any] | None:
+    try:
+        with urllib.request.urlopen(DAEMON_URL, timeout=1.0) as response:
+            status: dict[str, Any] = json.load(response)
+            return status
+    except (urllib.error.URLError, OSError, ValueError):
+        return None
 
 
 def _url_ready(url: str) -> bool:
@@ -81,10 +92,19 @@ def run_app() -> None:
 def launch(args: argparse.Namespace) -> None:
     """Start a daemon if needed (real robot or simulator), open the settings page, run the app."""
     daemon: subprocess.Popen[bytes] | None = None
-    if _url_ready(DAEMON_URL):
-        logger.info("Using the Reachy Mini daemon that is already running")
-    else:
+    status = _daemon_status()
+    if status is None:
         daemon = _start_daemon(sim=args.sim, headless=args.headless)
+    elif bool(status.get("simulation_enabled")) != args.sim:
+        running, wanted = (
+            ("simulator", "real robot") if status.get("simulation_enabled") else ("real robot", "simulator")
+        )
+        raise SystemExit(
+            f"A Reachy Mini daemon for the {running} is already running, but you asked for the {wanted}. "
+            "Stop it first, or launch the matching mode."
+        )
+    else:
+        logger.info("Using the Reachy Mini daemon that is already running")
     if args.sim:
         # The simulator has no media server; talk to the computer's mic and speakers directly.
         os.environ.setdefault("REACHY_KIDS_MEDIA_BACKEND", "local")

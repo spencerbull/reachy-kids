@@ -16,6 +16,7 @@ from reachy_kids.providers import get_provider
 logger = logging.getLogger(__name__)
 
 MAX_BACKOFF_S = 30.0
+RETRY_STATES = ("connecting", "reconnecting")
 
 
 class ConversationRunner:
@@ -73,7 +74,9 @@ class ConversationRunner:
     def _on_event(self, kind: str, payload: dict[str, Any]) -> None:
         with self._lock:
             if kind == "status":
-                self._state.update(payload, error="")
+                # Keep the last failure visible while retrying; it clears once a session is up again.
+                error = self._state["error"] if payload.get("state") in RETRY_STATES else ""
+                self._state.update(payload, error=error)
             elif kind == "transcript" and payload.get("text"):
                 self._transcript.append({"role": payload["role"], "text": payload["text"]})
             elif kind == "error":
@@ -110,7 +113,8 @@ class ConversationRunner:
                 if not session.done():
                     session_stop.set()
                     await asyncio.gather(session, return_exceptions=True)
-                    self.audio.clear()
+                # Drop speech still queued from the old session, however it ended.
+                self.audio.clear()
                 restart.cancel()
 
                 error = session.exception() if session.done() and not session.cancelled() else None
