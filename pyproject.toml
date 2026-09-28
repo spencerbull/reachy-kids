@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachy_kids"
-version = "0.1.0"
+version = "0.1.1"
 description = "Voice conversation app for Reachy Mini with a kids mode, powered by OpenAI Realtime or xAI Grok Voice"
 readme = "README.md"
 requires-python = ">=3.11"

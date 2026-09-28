@@ -37,7 +37,7 @@ This installs the `reachy-kids` command (with the MuJoCo simulator) and adds two
 To install a wheel by hand instead:
 
 ```bash
-uv tool install "reachy-kids[sim] @ https://github.com/spencerbull/reachy-kids/releases/download/v0.1.0/reachy_kids-0.1.0-py3-none-any.whl"
+uv tool install "reachy-kids[sim] @ https://github.com/spencerbull/reachy-kids/releases/download/v0.1.1/reachy_kids-0.1.1-py3-none-any.whl"
 reachy-kids install-launcher
 ```
 
@@ -126,5 +126,5 @@ Bump `version` in `pyproject.toml`, merge, then push a matching tag. The release
 and publishes them with `install.sh` to GitHub Releases.
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag v0.1.1 && git push origin v0.1.1
 ```
