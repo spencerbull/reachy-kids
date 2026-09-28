@@ -47,6 +47,9 @@ def test_corrupt_file_falls_back_to_defaults(isolated_settings):
     assert load_settings() == Settings()
     isolated_settings.write_text(json.dumps({"provider": "gemini"}))
     assert load_settings() == Settings()
+    for not_an_object in ("[]", "null", '"text"', "3"):
+        isolated_settings.write_text(not_an_object)
+        assert load_settings() == Settings()
 
 
 def test_public_dict_hides_keys():

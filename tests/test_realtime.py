@@ -161,3 +161,21 @@ async def test_child_interrupting_during_tool_follow_up_does_not_stall():
         await server.wait_for("response.create", count=2, timeout=1.0)
         stop.set()
         await asyncio.wait_for(task, 5)
+
+
+@pytest.mark.parametrize("status", ["cancelled", "failed", "incomplete"])
+async def test_tool_calls_from_interrupted_responses_are_dropped(status):
+    async with FakeRealtimeServer() as server:
+        _, _, tools, _, stop, task = await start(server, "openai")
+        await server.wait_for("response.create")
+
+        await server.send({"type": "response.function_call_arguments.done", "call_id": "c1", "name": "dance"})
+        await server.send({"type": "response.done", "response": {"status": status}})
+        await server.send({"type": "response.done", "response": {"status": "completed"}})
+        await asyncio.sleep(0.2)
+
+        assert tools.calls == []
+        assert server.of_type("conversation.item.create") == []
+        assert len(server.of_type("response.create")) == 1
+        stop.set()
+        await asyncio.wait_for(task, 5)

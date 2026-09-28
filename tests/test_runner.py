@@ -41,14 +41,18 @@ async def test_waits_for_a_key_then_connects_and_restarts_on_change():
 
 async def test_reconnects_after_the_server_drops():
     async with FakeRealtimeServer() as server:
-        runner = ConversationRunner(FakeAudio(), FakeTools())
+        audio = FakeAudio()
+        runner = ConversationRunner(audio, FakeTools())
         runner.update_settings({"openai_api_key": "sk-1", "realtime_url": server.url})
         stop = threading.Event()
         task = asyncio.create_task(runner.run(stop))
 
         await server.wait_for("session.update")
+        clears_before = audio.clears
         await server.connection.close()
         await server.wait_for("session.update", count=2, timeout=10)
+        # Speech queued by the dropped session must not keep playing into the new one.
+        assert audio.clears > clears_before
 
         stop.set()
         await asyncio.wait_for(task, 5)
@@ -65,3 +69,22 @@ def test_blank_key_from_ui_keeps_saved_key_and_env_keys_are_not_persisted(monkey
     assert runner.settings.api_key == "xai-env"
     assert load_settings().xai_api_key == ""
     assert runner.snapshot()["settings"]["xai_api_key"] is True
+
+
+async def test_connection_errors_stay_visible_while_retrying():
+    runner = ConversationRunner(FakeAudio(), FakeTools())
+    runner.update_settings({"openai_api_key": "sk-1", "realtime_url": "ws://127.0.0.1:9/v1/realtime"})
+    stop = threading.Event()
+    task = asyncio.create_task(runner.run(stop))
+
+    async def failed_twice() -> None:
+        # Past the first retry, the next attempt's "connecting" status must not wipe the error.
+        while not (runner.snapshot()["error"] and runner.snapshot()["state"] in ("connecting", "reconnecting")):
+            await asyncio.sleep(0.02)
+        await asyncio.sleep(1.5)
+
+    await asyncio.wait_for(failed_twice(), 10)
+    assert runner.snapshot()["error"]
+
+    stop.set()
+    await asyncio.wait_for(task, 5)

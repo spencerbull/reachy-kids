@@ -108,6 +108,9 @@ def load_settings(path: Path | None = None) -> Settings:
             stored = json.loads(path.read_text())
         except (OSError, json.JSONDecodeError) as e:
             logger.warning("Ignoring unreadable settings file %s: %s", path, e)
+    if not isinstance(stored, dict):
+        logger.warning("Ignoring settings file %s: expected a JSON object", path)
+        return Settings()
     known = {f.name for f in fields(Settings)}
     try:
         return Settings(**{k: v for k, v in stored.items() if k in known}).updated({})
